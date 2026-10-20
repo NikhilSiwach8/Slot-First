@@ -9,3 +9,5 @@
 | `S_ticket_v1` (yellow glow halo) | `... 40 140 50 150` |
 | `W_moth_v1` (cyan edge fringe) | `... 40 140 100 215` |
 | `ink_faint/medium/deep_v1` (ink on parchment) | `python3 scripts/art/ink_extract.py raw/X.webp cut/X.png` — keeps only the ink |
+
+`cut/ui/` pieces were sliced by hand from the two UI sheets in `raw/ui/` after keying.
