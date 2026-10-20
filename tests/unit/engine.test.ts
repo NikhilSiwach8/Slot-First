@@ -143,6 +143,16 @@ describe('playRound', () => {
     }
   });
 
+  it('pays every win in whole hundredths of the stake', () => {
+    const rng = new Rng(11);
+    const cents = (v: number) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
+    for (let i = 0; i < 400; i++) {
+      const book = playRound(rng, i % 2 ? 'base' : 'buyMatinee');
+      expect(cents(book.payout)).toBe(true);
+      for (const e of book.events) if (e.type === 'act') expect(cents(e.actWin) && cents(e.totalWin)).toBe(true);
+    }
+  });
+
   it('starts a bought show straight away with the right number of spins', () => {
     const book = playRound(new Rng(3), 'buyMidnight');
     expect(book.events[0]).toMatchObject({ type: 'showStart', show: 'midnight', spins: 12 });

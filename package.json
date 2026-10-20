@@ -12,7 +12,10 @@
     "test": "vitest run",
     "simulate": "tsx scripts/simulate.ts",
     "assets": "python3 -I scripts/art/export_web.py",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "books": "tsx scripts/export-books.ts",
+    "books:verify": "tsx scripts/verify-books.ts",
+    "build:stake": "tsc --noEmit && vite build --outDir stake/frontend --emptyOutDir"
   },
   "dependencies": {
     "@fontsource/fraunces": "^5.3.0",

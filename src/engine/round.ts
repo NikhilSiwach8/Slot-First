@@ -33,6 +33,9 @@ export type BookEvent =
   | { type: 'showEnd'; show: ShowKind; showWin: number; deepestInk: number; encores: number; fullCircles: number }
   | { type: 'cap'; totalWin: number };
 
+/** Replaces reel sets for one round. Used only to search for max-win books (see scripts/export-books.ts). */
+export type ReelOverrides = Partial<Record<keyof typeof REELSETS, ReelSet>>;
+
 export interface Book {
   mode: Mode;
   cost: number;
@@ -115,22 +118,27 @@ function cellsOf(board: Board, sym: Sym): Cell[] {
   return cells;
 }
 
+/**
+ * Running total of a round, kept in whole hundredths of the stake. Stake Engine stores every
+ * payout as an integer number of hundredths (`payoutMultiplier`), so each win is rounded to
+ * the nearest 0.01× when it is paid and the total is always exact.
+ */
 class RoundState {
   events: BookEvent[] = [];
-  total = 0;
+  cents = 0;
   capped = false;
+
+  get total(): number {
+    return this.cents / 100;
+  }
 
   /** Adds a win, applying the 50,000× cap. Returns the amount actually added. */
   add(amount: number): number {
     if (this.capped) return 0;
-    const room = MAX_WIN - this.total;
-    const added = Math.min(amount, room);
-    this.total += added;
-    if (this.total >= MAX_WIN - 1e-9) {
-      this.total = MAX_WIN;
-      this.capped = true;
-    }
-    return added;
+    const added = Math.min(Math.round(amount * 100), MAX_WIN * 100 - this.cents);
+    this.cents += added;
+    if (this.cents >= MAX_WIN * 100) this.capped = true;
+    return added / 100;
   }
 }
 
@@ -193,9 +201,8 @@ function playSpin(rng: Rng, st: RoundState, reelset: ReelSet, board: Board, ctx:
   return stats;
 }
 
-function playShow(rng: Rng, st: RoundState, kind: ShowKind): void {
+function playShow(rng: Rng, st: RoundState, kind: ShowKind, reelset: ReelSet): void {
   const rules = SHOWS[kind];
-  const reelset = REELSETS[kind];
   const ink = grid(0);
   if (rules.startInk) for (let r = 0; r < REELS; r++) ink[r][rng.int(ROWS)] = 1;
   let flame = rules.flame;
@@ -234,14 +241,15 @@ function playShow(rng: Rng, st: RoundState, kind: ShowKind): void {
   });
 }
 
-export function playRound(rng: Rng, mode: Mode): Book {
+export function playRound(rng: Rng, mode: Mode, overrides: ReelOverrides = {}): Book {
   const rules = MODES[mode];
   const st = new RoundState();
+  const reels = (k: keyof typeof REELSETS) => overrides[k] ?? REELSETS[k];
 
   if (rules.buy) {
-    playShow(rng, st, rules.buy);
+    playShow(rng, st, rules.buy, reels(rules.buy));
   } else {
-    const reelset = REELSETS[rules.reelset];
+    const reelset = reels(rules.reelset);
     const board = drawBoard(rng, reelset);
     st.events.push({ type: 'reveal', board, show: null, spin: 1, spinsTotal: 1 });
     playSpin(rng, st, reelset, board, { ink: grid(0), inkCap: INK_CAP_BASE, lanterns: 1, minFlame: 1 });
@@ -251,7 +259,7 @@ export function playRound(rng: Rng, mode: Mode): Book {
       const pay = st.add(SCATTER_PAY[tickets.length - 3]);
       st.events.push({ type: 'scatter', cells: tickets, pay, totalWin: st.total });
       const show = showForTickets(tickets.length);
-      if (show && !st.capped) playShow(rng, st, show);
+      if (show && !st.capped) playShow(rng, st, show, reels(show));
     }
   }
   if (st.capped) st.events.push({ type: 'cap', totalWin: st.total });

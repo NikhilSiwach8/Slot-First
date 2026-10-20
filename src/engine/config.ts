@@ -121,17 +121,19 @@ export const INK_CAP_SHOW = 100;
 
 export interface ModeRules {
   name: string;
+  /** Bet-mode name in the Stake Engine index.json and in /wallet/play. */
+  rgs: string;
   cost: number; // × stake
   reelset: 'base' | 'ante';
   buy?: ShowKind;
 }
 
 export const MODES: Record<Mode, ModeRules> = {
-  base: { name: 'Standard', cost: 1, reelset: 'base' },
-  ante: { name: 'Extra Wick', cost: 1.25, reelset: 'ante' },
-  buyMatinee: { name: 'Buy: The Matinee', cost: 90, reelset: 'base', buy: 'matinee' },
-  buyMidnight: { name: 'Buy: The Midnight Show', cost: 270, reelset: 'base', buy: 'midnight' },
-  buyLightsOut: { name: 'Buy: Lights Out', cost: 600, reelset: 'base', buy: 'lightsOut' },
+  base: { name: 'Standard', rgs: 'base', cost: 1, reelset: 'base' },
+  ante: { name: 'Extra Wick', rgs: 'ante', cost: 1.25, reelset: 'ante' },
+  buyMatinee: { name: 'Buy: The Matinee', rgs: 'buy_matinee', cost: 88, reelset: 'base', buy: 'matinee' },
+  buyMidnight: { name: 'Buy: The Midnight Show', rgs: 'buy_midnight', cost: 270, reelset: 'base', buy: 'midnight' },
+  buyLightsOut: { name: 'Buy: Lights Out', rgs: 'buy_lights_out', cost: 600, reelset: 'base', buy: 'lightsOut' },
 };
 
 export function showForTickets(n: number): ShowKind | null {

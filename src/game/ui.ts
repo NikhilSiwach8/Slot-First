@@ -1,12 +1,38 @@
 import { FLAME_NAMES, SHOWS, type Flame, type ShowKind, type Side } from '../engine/config';
 import { animate, ease, wait } from './tween';
 
-export const STAKES = [0.1, 0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 3, 4, 5, 8, 10, 15, 20, 50, 100];
-
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector(sel) as T;
 
+// Currency display, as in Stake Engine's ts-client: symbol, decimals and placement.
+const CURRENCIES: Record<string, { symbol: string; decimals: number; after?: boolean }> = {
+  USD: { symbol: '$', decimals: 2 }, CAD: { symbol: 'CA$', decimals: 2 }, JPY: { symbol: '¥', decimals: 0 },
+  EUR: { symbol: '€', decimals: 2 }, RUB: { symbol: '₽', decimals: 2 }, CNY: { symbol: 'CN¥', decimals: 2 },
+  PHP: { symbol: '₱', decimals: 2 }, INR: { symbol: '₹', decimals: 2 }, IDR: { symbol: 'Rp', decimals: 0 },
+  KRW: { symbol: '₩', decimals: 0 }, BRL: { symbol: 'R$', decimals: 2 }, MXN: { symbol: 'MX$', decimals: 2 },
+  DKK: { symbol: 'KR', decimals: 2, after: true }, PLN: { symbol: 'zł', decimals: 2, after: true },
+  VND: { symbol: '₫', decimals: 0, after: true }, TRY: { symbol: '₺', decimals: 2 }, CLP: { symbol: 'CLP', decimals: 0, after: true },
+  ARS: { symbol: 'ARS', decimals: 2, after: true }, PEN: { symbol: 'S/', decimals: 2, after: true }, NGN: { symbol: '₦', decimals: 0 },
+  SAR: { symbol: 'SAR', decimals: 2, after: true }, ILS: { symbol: 'ILS', decimals: 2, after: true }, AED: { symbol: 'AED', decimals: 2, after: true },
+  TWD: { symbol: 'NT$', decimals: 2 }, NOK: { symbol: 'kr', decimals: 2 }, KWD: { symbol: 'KD', decimals: 2 },
+  JOD: { symbol: 'JD', decimals: 2 }, CRC: { symbol: '₡', decimals: 2 }, TND: { symbol: 'TND', decimals: 2, after: true },
+  SGD: { symbol: 'SG$', decimals: 2 }, MYR: { symbol: 'RM', decimals: 2 }, OMR: { symbol: 'OMR', decimals: 2, after: true },
+  QAR: { symbol: 'QAR', decimals: 2, after: true }, BHD: { symbol: 'BD', decimals: 2 },
+  XGC: { symbol: 'GC', decimals: 0, after: true }, XSC: { symbol: 'SC', decimals: 2, after: true },
+};
+let currency: { symbol: string; decimals: number; after?: boolean } | null = null;
+
+/** Set the display currency (null = play credits, plain numbers). Unknown codes show the code after the amount. */
+export function setCurrency(code: string | null): void {
+  currency = code ? (CURRENCIES[code.toUpperCase()] ?? { symbol: code.toUpperCase(), decimals: 2, after: true }) : null;
+}
+
 export function money(v: number): string {
-  return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Amounts below the currency's precision (tiny wins on small stakes) still show their value.
+  const d = currency?.decimals ?? 2;
+  const decimals = v !== 0 && Math.abs(v) < 10 ** -d ? 4 : d;
+  const n = v.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  if (!currency) return n;
+  return currency.after ? `${n} ${currency.symbol}` : `${currency.symbol}${n}`;
 }
 
 export class Ui {
@@ -30,21 +56,14 @@ export class Ui {
     info: $<HTMLButtonElement>('#btn-info'),
     settings: $<HTMLButtonElement>('#btn-settings'),
   };
-  stakeIndex = STAKES.indexOf(1);
+  stakes: number[] = [1];
+  stakeIndex = 0;
   onStake: () => void = () => {};
   private busy = false;
 
   constructor() {
     this.strip.className = 'seat-strip';
     this.roll.appendChild(this.strip);
-    STAKES.forEach((s, i) => {
-      const b = document.createElement('button');
-      b.className = 'stub';
-      b.innerHTML = `<span><small>SEAT</small>${money(s)}</span>`;
-      b.setAttribute('aria-label', `Stake ${money(s)}`);
-      b.addEventListener('click', () => this.setStake(i));
-      this.strip.appendChild(b);
-    });
     this.down.addEventListener('click', () => this.setStake(this.stakeIndex - 1));
     this.up.addEventListener('click', () => this.setStake(this.stakeIndex + 1));
     this.roll.addEventListener('wheel', (e) => {
@@ -57,23 +76,40 @@ export class Ui {
       const dx = e.changedTouches[0].clientX - touchX;
       if (Math.abs(dx) > 24) this.setStake(this.stakeIndex + (dx < 0 ? 1 : -1));
     });
-    this.setStake(this.stakeIndex, true);
+  }
+
+  /** Build the ticket roll from the bet levels (from the RGS, or the demo list). */
+  setStakes(levels: number[], preferred: number): void {
+    this.stakes = levels.length ? levels : [preferred];
+    this.strip.replaceChildren();
+    this.stakes.forEach((s, i) => {
+      const b = document.createElement('button');
+      b.className = 'stub';
+      b.innerHTML = `<span><small>SEAT</small>${money(s)}</span>`;
+      b.setAttribute('aria-label', `Stake ${money(s)}`);
+      b.addEventListener('click', () => this.setStake(i));
+      this.strip.appendChild(b);
+    });
+    let best = 0;
+    this.stakes.forEach((s, i) => { if (Math.abs(s - preferred) < Math.abs(this.stakes[best] - preferred)) best = i; });
+    this.stakeIndex = best;
+    this.setStake(best, true);
   }
 
   get stake(): number {
-    return STAKES[this.stakeIndex];
+    return this.stakes[this.stakeIndex];
   }
 
   setStake(i: number, silent = false): void {
     if (this.busy) return;
-    this.stakeIndex = Math.max(0, Math.min(STAKES.length - 1, i));
+    this.stakeIndex = Math.max(0, Math.min(this.stakes.length - 1, i));
     const stubs = [...this.strip.children] as HTMLElement[];
     stubs.forEach((s, k) => s.classList.toggle('on', k === this.stakeIndex));
     const stubW = (stubs[0]?.offsetWidth || 104) + 6;
     const rollW = this.roll.offsetWidth || 210;
     this.strip.style.transform = `translateX(${rollW / 2 - stubW * this.stakeIndex - stubW / 2 + 3}px)`;
     this.down.disabled = this.stakeIndex === 0;
-    this.up.disabled = this.stakeIndex === STAKES.length - 1;
+    this.up.disabled = this.stakeIndex === this.stakes.length - 1;
     if (!silent) this.onStake();
   }
 

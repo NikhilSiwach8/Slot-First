@@ -3,6 +3,7 @@ import {
   SYMBOL_NAMES, type Flame, type Mode, type ShowKind, type Side, type Sym,
 } from '../engine/config';
 import { cast } from '../engine/light';
+import published from '../engine/published.json';
 import { url } from './assets';
 import { sfx } from './sfx';
 import { animate, ease, wait } from './tween';
@@ -95,8 +96,21 @@ function demoWidget(): HTMLElement {
   return root;
 }
 
-export function programme(stake: number): void {
+interface PublishedMode { rgs: string; cost: number; rtp: number; hitOneIn: number; maxWinOneIn: number }
+const PUBLISHED = (published as { modes: Partial<Record<Mode, PublishedMode>> }).modes;
+/** RTP of a mode as computed from its published lookup table (falls back to the target). */
+const rtpOf = (m: Mode) => PUBLISHED[m]?.rtp ?? RTP_TARGET;
+const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
+const oneIn = (v: number) => `1 in ${Math.round(v).toLocaleString('en-US')}`;
+
+export interface RulesOptions {
+  displayRTP: boolean;
+  buys: boolean;
+}
+
+export function programme(stake: number, opts: RulesOptions = { displayRTP: true, buys: true }): void {
   const pay = (v: number) => money(v * stake);
+  const modes = (Object.keys(MODES) as Mode[]).filter((m) => opts.buys || !MODES[m].buy);
   const cards = ORDER.map((s) => `
     <div class="pay-card">
       <img src="${url(`symbols/${s}`)}" alt="">
@@ -108,13 +122,13 @@ export function programme(stake: number): void {
     <p class="lead">Every puppet casts a shadow. Tonight, the shadows pay.</p>
     <nav class="tabs">
       <a href="#p-overture">Overture</a><a href="#p-company">I · The Company</a><a href="#p-light">II · Light &amp; Shadow</a>
-      <a href="#p-ink">III · Ink</a><a href="#p-encore">IV · Encore</a><a href="#p-shows">V · The Shows</a><a href="#p-box">Box Office</a><a href="#p-fine">Fine Print</a>
+      <a href="#p-ink">III · Ink</a><a href="#p-encore">IV · Encore</a><a href="#p-shows">V · The Shows</a><a href="#p-box">Box Office</a><a href="#p-controls">Controls</a><a href="#p-fine">Fine Print</a>
     </nav>
 
     <h3 id="p-overture">Overture</h3>
     <p>A 6-reel, 5-row stage that pays <b>15,625 ways</b> from the left. A Lantern lights the stage from one side and every puppet throws a shadow that counts as a real symbol. When a spin pays, the light moves and the same board can pay again.</p>
     <div class="stats">
-      <div class="stat"><b>${(RTP_TARGET * 100).toFixed(1)}%</b><span>Target RTP</span></div>
+      ${opts.displayRTP ? `<div class="stat"><b>${pct(rtpOf('base'))}</b><span>RTP</span></div>` : ''}
       <div class="stat"><b>${MAX_WIN.toLocaleString('en-US')}×</b><span>Max win</span></div>
       <div class="stat"><b>High</b><span>Volatility</span></div>
       <div class="stat"><b>15,625</b><span>Ways</span></div>
@@ -146,20 +160,53 @@ export function programme(stake: number): void {
     <p>During a show, <b>Match</b> symbols can land. Each one raises the flame for the rest of the show (Candle → Lamp → Bonfire); once the flame is a Bonfire, each further Match lights another Lantern, up to four. Three or more Tickets in a show add ${RETRIGGER_SPINS} spins.</p>
 
     <h3 id="p-box">Box Office</h3>
-    <div class="paytable">${(Object.keys(MODES) as Mode[]).map((m) => `<div class="pay-card"><div class="nm">${MODES[m].name}</div><table><tr><td>Cost</td><td>${MODES[m].cost}× · ${money(MODES[m].cost * stake)}</td></tr></table></div>`).join('')}</div>
-    <p>Extra Wick raises the chance of Tickets and of Lamp and Bonfire flames for 1.25× the stake. A show buy starts that show straight away. The target RTP is the same for every mode.</p>
+    <div class="paytable">${modes.map((m) => `<div class="pay-card"><div class="nm">${MODES[m].name}</div><table>
+      <tr><td>Cost</td><td>${MODES[m].cost}× · ${money(MODES[m].cost * stake)}</td></tr>
+      ${opts.displayRTP ? `<tr><td>RTP</td><td>${pct(rtpOf(m))}</td></tr>` : ''}
+      <tr><td>Max win</td><td>${MAX_WIN.toLocaleString('en-US')}× · ${money(MAX_WIN * stake)}</td></tr>
+      ${PUBLISHED[m] ? `<tr><td>Max win odds</td><td>${oneIn(PUBLISHED[m]!.maxWinOneIn)}</td></tr>` : ''}
+    </table></div>`).join('')}</div>
+    <p><b>Standard</b> is the normal game. <b>Extra Wick</b> costs 1.25× the stake and raises the chance of Tickets and of Lamp and Bonfire flames.${opts.buys ? ` A <b>show buy</b> costs the amount shown and starts that show straight away, with the same rules as a show won from Tickets.` : ''} The maximum win is the same in every mode: ${MAX_WIN.toLocaleString('en-US')}× the stake.</p>
+
+    <h3 id="p-controls">Controls</h3>
+    <ul>
+      <li><b>Spin</b> (the brass lantern button, or <b>Space</b>): plays one round at the selected stake. While a round plays, it skips the current animation.</li>
+      <li><b>Seat tickets</b> (◀ ▶, or the ← → keys): choose your stake.</li>
+      <li><b>Box Office</b>: your balance. The <b>marquee</b> above the stage shows the win of the current round.</li>
+      <li><b>Repertory</b> (circular arrows): autoplay a chosen number of rounds after you confirm; it stops on the conditions you pick or when you press Spin.</li>
+      <li><b>Quick Change</b> (lightning bolt): faster animations. Wins stay on screen long enough to read.</li>
+      <li><b>Playbill</b> (scroll): choose Standard or Extra Wick${opts.buys ? ', or buy a show' : ''}.</li>
+      <li><b>Sound</b>, <b>?</b> (these rules) and <b>Settings</b> are at the top right.</li>
+    </ul>
 
     <h3 id="p-fine">Fine Print</h3>
     <ul>
-      <li>Ways pay left to right on adjacent reels from reel 1. For each symbol, the longest set of ways is paid.</li>
+      <li>Ways pay left to right on adjacent reels from reel 1. For each symbol, the longest set of ways is paid. Wins are rounded to the nearest 0.01× the stake when paid.</li>
       <li>Order on every spin: the reels stop, the Lantern settles, shadows are cast, ink forms, wins are paid. Then the Encore, if any. Tickets pay and trigger after all Acts.</li>
       <li>The total win of a round, base game and show together, is capped at ${MAX_WIN.toLocaleString('en-US')}× the stake. When the cap is reached the round ends immediately.</li>
-      <li>Wins are shown in the currency of your stake. Malfunction voids all pays and plays.</li>
-      <li>This is a demo build that plays with play credits. The odds are generated locally; the published game is served by the Stake Engine RGS.</li>
+      <li>Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds.</li>
+      <li>The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only.</li>
+      <li>Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser.</li>
+      <li>TM and © 2026 Stake Engine. Shadowplay game design and artwork © 2026 its authors.</li>
     </ul>
   </div>`);
   content.querySelector('.demo')!.replaceWith(demoWidget());
   modal(content, { label: 'Game rules' });
+}
+
+// ------------------------------------------------------------------ errors
+
+/** A blocking message. With `dismissable` it has an OK button; otherwise the game stops here. */
+export function errorCard(message: string, dismissable: boolean): Promise<void> {
+  return new Promise((resolve) => {
+    const scrim = el(`<div class="scrim" role="alertdialog" aria-modal="true" aria-label="Notice"><div class="sheet dark-sheet" style="max-width:460px;text-align:center"><h2>Intermission</h2><p></p>${dismissable ? '<button class="btn">OK</button>' : ''}</div></div>`);
+    scrim.querySelector('p')!.textContent = message;
+    layer.appendChild(scrim);
+    const btn = scrim.querySelector('button');
+    if (!btn) return; // fatal: stays on screen
+    btn.focus();
+    btn.addEventListener('click', () => { scrim.remove(); resolve(); });
+  });
 }
 
 // ------------------------------------------------------------------ the Poster Wall
@@ -172,13 +219,14 @@ const POSTERS: { mode: Mode; img: string; desc: string }[] = [
   { mode: 'buyLightsOut', img: 'lights_out', desc: `${SHOWS.lightsOut.spins} spins, two Lanterns.` },
 ];
 
-export function posterWall(stake: number, ante: boolean, balance: number): Promise<Mode | null> {
+export function posterWall(stake: number, ante: boolean, balance: number, buys = true): Promise<Mode | null> {
   return new Promise((resolve) => {
     let picked: Mode | null = null;
     const content = el(`<div><h2>The Playbill</h2><p class="lead" style="color:var(--wax-dim)">Choose tonight's performance.</p><div class="posters"></div></div>`);
     const wall = content.querySelector('.posters')!;
     const m = modal(content, { dark: true, label: 'Bet modes and show buys' });
     for (const p of POSTERS) {
+      if (!buys && MODES[p.mode].buy) continue;
       const cost = MODES[p.mode].cost * stake;
       const on = (p.mode === 'ante') === ante && (p.mode === 'base' || p.mode === 'ante');
       const b = el(`<button class="poster${on ? ' on' : ''}"><img src="${url(`posters/${p.img}`)}" alt=""><span class="pt">${MODES[p.mode].name.replace('Buy: ', '')}</span><span class="pc">${MODES[p.mode].cost}× · ${money(cost)}</span><span class="pd">${p.desc}</span></button>`) as HTMLButtonElement;

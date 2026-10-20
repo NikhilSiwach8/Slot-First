@@ -11,15 +11,16 @@ import { MODES, type Mode } from '../engine/config';
 import { Rng } from '../engine/rng';
 import { playRound } from '../engine/round';
 import { loadAll } from './assets';
-import { autoplay, intro, modalOpen, posterWall, programme, settings, type AutoplaySettings, type Settings } from './overlays';
+import { pickBackend, RgsError, type Jurisdiction, type Session } from './backend';
+import { autoplay, errorCard, intro, modalOpen, posterWall, programme, settings, type AutoplaySettings, type Settings } from './overlays';
 import { playBook } from './player';
 import { isMuted, setMuted, sfx } from './sfx';
+import { enableSocialMode } from './social';
 import { Stage } from './stage';
-import { clock, setSkipping, setTurbo } from './tween';
-import { Ui } from './ui';
+import { clock, setSkipping, setTurbo, wait } from './tween';
+import { setCurrency, Ui } from './ui';
 
 const params = new URLSearchParams(location.search);
-const START_BALANCE = 1000;
 
 function store<T>(key: string, fallback: T): T {
   try {
@@ -50,7 +51,7 @@ async function boot(): Promise<void> {
   document.querySelector('#stage')!.appendChild(app.canvas);
   clock.ticker = app.ticker;
   app.ticker.minFPS = 5;
-  if (params.has('speed')) clock.base = Number(params.get('speed')); // dev: faster playback
+  if (import.meta.env.DEV && params.has('speed')) clock.base = Number(params.get('speed')); // dev: faster playback
 
   await Promise.all([loadAll(progress), document.fonts.load('800 italic 34px Fraunces'), document.fonts.load('700 20px Fraunces')]);
   progress(1);
@@ -59,10 +60,27 @@ async function boot(): Promise<void> {
   const stage = new Stage(app);
   const ui = new Ui();
   const seed = params.has('seed') ? Number(params.get('seed')) : (Math.random() * 2 ** 32) >>> 0;
-  const rng = new Rng(seed);
+  const backend = pickBackend(params, seed);
+  const replay = backend.kind === 'replay';
 
-  let prefs: Settings = { turbo: store('turbo', false), reducedMotion: store('reducedMotion', clock.reducedMotion), intro: store('intro', true) };
-  let balance = START_BALANCE;
+  let session: Session;
+  try {
+    session = await backend.start();
+  } catch (e) {
+    loader.remove();
+    await errorCard(e instanceof RgsError ? e.message : 'The game could not start. Please reload.', false);
+    return;
+  }
+  const flags: Jurisdiction = session.jurisdiction;
+  if (flags.socialCasino || params.get('social') === 'true') enableSocialMode(document.querySelector('#app') as HTMLElement);
+  setCurrency(session.currency);
+  ui.setStakes(session.stakes, session.defaultStake);
+  if (flags.disabledAutoplay || replay) ui.buttons.autoplay.hidden = true;
+  if (flags.disabledTurbo) ui.buttons.turbo.hidden = true;
+  if (replay) document.body.classList.add('replay');
+
+  let prefs: Settings = { turbo: !flags.disabledTurbo && store('turbo', false), reducedMotion: store('reducedMotion', clock.reducedMotion), intro: store('intro', true) };
+  let balance = session.balance;
   let ante = false;
   let busy = false;
   let auto: { left: number; cfg: AutoplaySettings; startBalance: number } | null = null;
@@ -78,8 +96,8 @@ async function boot(): Promise<void> {
 
   const cost = () => MODES[ante ? 'ante' : 'base'].cost * ui.stake;
   const refresh = () => {
-    ui.setBalance(balance, balance >= cost() - 1e-9);
-    ui.setSpinEnabled(busy || balance >= cost() - 1e-9);
+    ui.setBalance(balance, replay || balance >= cost() - 1e-9);
+    ui.setSpinEnabled(replay || busy || balance >= cost() - 1e-9);
     ui.setModeChip(ante ? 'Extra Wick lit · 1.25×' : null);
   };
   ui.onStake = () => { sfx.click(); refresh(); };
@@ -95,40 +113,59 @@ async function boot(): Promise<void> {
   window.addEventListener('resize', relayout);
   relayout();
 
+  if (replay) {
+    for (const b of [ui.buttons.playbill, ui.buttons.turbo]) b.hidden = true;
+    ui.spinBtn.setAttribute('aria-label', 'Play the replay');
+  }
+
   // A first board so the stage is never empty.
-  const first = playRound(new Rng(seed ^ 0x51), 'base').events.find((e) => e.type === 'reveal');
+  const first = playRound(new Rng(seed ^ 0x51), 'base').events.find((e) => e.type === 'reveal'); // decorative only
   if (first && first.type === 'reveal') stage.showBoard(first.board);
   ui.marquee('Place your stake', '');
   refresh();
 
+  /** Animate a round, then close it with the backend. */
+  async function run(book: Parameters<typeof playBook>[0], stake: number): Promise<number> {
+    const started = performance.now();
+    const won = await playBook(book, stake, stage, ui, auto !== null);
+    const left = flags.minimumRoundDuration - (performance.now() - started);
+    if (left > 0) await wait(left);
+    const after = await backend.finish(book, stake);
+    if (!Number.isNaN(after)) balance = after;
+    return won;
+  }
+
   async function play(mode: Mode): Promise<void> {
     const price = MODES[mode].cost * ui.stake;
-    if (busy || balance < price - 1e-9) return;
+    if (busy || (!replay && balance < price - 1e-9)) return;
     busy = true;
     setSkipping(false);
     ui.setBusy(true);
-    balance -= price;
-    refresh();
-    ui.marquee('Good luck', '');
-    const book = playRound(rng, mode);
+    ui.marquee(replay ? 'Replay' : 'Good luck', '');
     try {
-      const won = await playBook(book, ui.stake, stage, ui, auto !== null);
-      balance += won;
+      const res = await backend.play(mode, ui.stake);
+      if (!replay) balance = res.balance;
+      refresh();
+      const won = await run(res.book, replay ? (backend as unknown as { stake: number }).stake : ui.stake);
       if (auto) {
         auto.left--;
-        const shows = book.events.some((e) => e.type === 'showStart');
+        const shows = res.book.events.some((e) => e.type === 'showStart');
         const stop = auto.left <= 0
           || (auto.cfg.stopOnShow && shows)
           || (auto.cfg.stopOnWin !== null && won >= auto.cfg.stopOnWin)
           || (auto.cfg.stopOnLoss !== null && auto.startBalance - balance >= auto.cfg.stopOnLoss);
         if (stop) auto = null;
       }
+    } catch (e) {
+      auto = null;
+      await errorCard(e instanceof RgsError ? e.message : 'This round could not be shown. Please reload the game to finish it.', true);
     } finally {
       busy = false;
       setSkipping(false);
       ui.setBusy(false);
       ui.setAutoplayCount(auto ? auto.left : null);
       refresh();
+      if (replay) ui.marquee('Replay finished', '');
     }
     if (auto && balance >= cost() - 1e-9) setTimeout(() => play(ante ? 'ante' : 'base'), 350);
     else auto = null;
@@ -143,13 +180,13 @@ async function boot(): Promise<void> {
       return;
     }
     sfx.click();
-    void play(ante ? 'ante' : 'base');
+    void play(replay ? (backend as unknown as { mode: Mode }).mode : ante ? 'ante' : 'base');
   };
 
   ui.spinBtn.addEventListener('click', spinOrSkip);
   window.addEventListener('keydown', (e) => {
     if (modalOpen()) return;
-    if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); spinOrSkip(); }
+    if ((e.key === ' ' || e.code === 'Space') && !flags.disabledSpacebar) { e.preventDefault(); spinOrSkip(); }
     if (e.key === 'ArrowLeft') ui.setStake(ui.stakeIndex - 1);
     if (e.key === 'ArrowRight') ui.setStake(ui.stakeIndex + 1);
   });
@@ -166,7 +203,7 @@ async function boot(): Promise<void> {
     ui.buttons.sound.setAttribute('aria-label', isMuted() ? 'Sound off' : 'Sound on');
     sfx.click();
   });
-  ui.buttons.info.addEventListener('click', () => programme(ui.stake));
+  ui.buttons.info.addEventListener('click', () => programme(ui.stake, { displayRTP: flags.displayRTP, buys: !flags.disabledBuyFeature }));
   ui.buttons.settings.addEventListener('click', () => settings(prefs, (s) => {
     prefs = s;
     save('turbo', s.turbo);
@@ -176,7 +213,7 @@ async function boot(): Promise<void> {
   }));
   ui.buttons.playbill.addEventListener('click', async () => {
     if (busy) return;
-    const mode = await posterWall(ui.stake, ante, balance);
+    const mode = await posterWall(ui.stake, ante, balance, !flags.disabledBuyFeature);
     if (mode === 'base' || mode === 'ante') { ante = mode === 'ante'; refresh(); }
     else if (mode) void play(mode);
   });
@@ -202,11 +239,23 @@ async function boot(): Promise<void> {
   sfx.fanfare();
   loader.classList.add('gone');
   setTimeout(() => loader.remove(), 700);
-  if (prefs.intro && !params.has('nointro')) {
+  if (session.resume) {
+    // A round was left unfinished: show it, then close it.
+    const { book, stake } = session.resume;
+    busy = true;
+    ui.setBusy(true);
+    await ui.banner('WELCOME BACK', 'Finishing your last round', '', 1400);
+    try { await run(book, stake); } catch (e) { await errorCard(e instanceof RgsError ? e.message : 'The last round could not be finished.', true); }
+    busy = false;
+    ui.setBusy(false);
+    refresh();
+  } else if (replay) {
+    ui.marquee('Replay', 'Press play');
+  } else if (prefs.intro && !params.has('nointro')) {
     const again = await intro();
     if (!again) { prefs = { ...prefs, intro: false }; save('intro', false); }
   }
-  (window as unknown as { __shadowplay: unknown }).__shadowplay = { play, stage, ui, get balance() { return balance; } };
+  if (import.meta.env.DEV) (window as unknown as { __shadowplay: unknown }).__shadowplay = { play, stage, ui, get balance() { return balance; } };
 }
 
 void boot();

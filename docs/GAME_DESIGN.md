@@ -207,7 +207,7 @@ The Playbill holds every bet mode.
 |---|---|---|
 | **Standard** | 1× | Base game |
 | **Extra Wick** (Ante) | 1.25× | Doubles the chance of Lamp and Bonfire flames and doubles Ticket frequency |
-| **Buy: Matinee** | 90× | Starts the Matinee |
+| **Buy: Matinee** | 88× | Starts the Matinee |
 | **Buy: Midnight Show** | 270× | Starts the Midnight Show |
 | **Buy: Lights Out** | 600× | Starts Lights Out |
 

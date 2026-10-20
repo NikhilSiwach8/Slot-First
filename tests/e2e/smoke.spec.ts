@@ -44,3 +44,12 @@ test('the Programme and the Playbill open and close', async ({ page }) => {
   await page.getByRole('button', { name: 'Close' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
+
+test('loads everything from its own origin (no external requests)', async ({ page }) => {
+  const external: string[] = [];
+  page.on('request', (r) => { if (new URL(r.url()).origin !== 'http://localhost:4173') external.push(r.url()); });
+  await start(page);
+  await page.locator('#spin').click();
+  await expect(page.locator('#spin')).not.toHaveClass(/busy/, { timeout: 60_000 });
+  expect(external.filter((u) => !u.startsWith('data:') && !u.startsWith('blob:'))).toEqual([]);
+});
