@@ -1,0 +1,34 @@
+{
+  "modes": [
+    {
+      "name": "base",
+      "cost": 1.0,
+      "events": "books_base.jsonl.zst",
+      "weights": "lookUpTable_base_0.csv"
+    },
+    {
+      "name": "ante",
+      "cost": 1.25,
+      "events": "books_ante.jsonl.zst",
+      "weights": "lookUpTable_ante_0.csv"
+    },
+    {
+      "name": "buy_matinee",
+      "cost": 88.0,
+      "events": "books_buy_matinee.jsonl.zst",
+      "weights": "lookUpTable_buy_matinee_0.csv"
+    },
+    {
+      "name": "buy_midnight",
+      "cost": 270.0,
+      "events": "books_buy_midnight.jsonl.zst",
+      "weights": "lookUpTable_buy_midnight_0.csv"
+    },
+    {
+      "name": "buy_lights_out",
+      "cost": 600.0,
+      "events": "books_buy_lights_out.jsonl.zst",
+      "weights": "lookUpTable_buy_lights_out_0.csv"
+    }
+  ]
+}

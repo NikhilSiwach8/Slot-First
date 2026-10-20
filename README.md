@@ -7,11 +7,11 @@ stage from one side and every puppet throws a violet-ink shadow that pays as a r
 A win moves the light (the **Encore**), and the same board can pay again from a new side.
 Max win **50,000×**.
 
-> **Demo build.** It plays with play credits and draws its own outcomes with a seeded PRNG
-> in the browser. The maths is structured the way Stake Engine serves it (one stateless
-> round = one book of events), but nothing here has run on Stake Engine yet. Final RTP
-> tuning, publication files (books, lookup tables, index) and the RGS connection are the
-> next step.
+> **Ready to upload to Stake Engine:** `stake/math/` (books, lookup tables, index.json) and
+> `stake/frontend/` (static build). Every mode is exactly 96.20% RTP and passes the
+> independent verifier. See [docs/STAKE_UPLOAD.md](docs/STAKE_UPLOAD.md). It has not yet
+> been run against a live Stake Engine RGS; without `sessionID` in the URL the game plays
+> locally with play credits.
 
 ## Quick start
 
@@ -28,6 +28,9 @@ npm run dev          # http://localhost:5173
 | `npm run build` | Type-check and production build to `dist/` |
 | `npm test` | Engine unit tests (Vitest) |
 | `npm run simulate -- --rounds 1000000 --mode base,ante` | Monte Carlo RTP and feature stats per bet mode |
+| `npm run books` | Generate the Stake Engine math files into `stake/math/` (30–60 min) |
+| `npm run books:verify` | Independently check `stake/math/`, replaying every book |
+| `npm run build:stake` | Build the frontend into `stake/frontend/` |
 | `npm run assets` | Re-export `assets/` art into web-sized WebP files in `public/assets/` |
 
 URL parameters for development: `?seed=123` for a reproducible session, `?nointro` to skip
@@ -47,7 +50,7 @@ a window.
 | `assets/` | Approved art: `raw/` as generated, `cut/` keyed to transparent PNG |
 | `docs/` | Game design document and the image prompt packs |
 
-## Measured maths (demo build)
+## Maths
 
-See [docs/MATH_NOTES.md](docs/MATH_NOTES.md) for the current simulation results and what
-still needs tuning before release.
+See [docs/MATH_NOTES.md](docs/MATH_NOTES.md) for the published RTP, hit rates, max-win odds
+and how the lookup tables were weighted.

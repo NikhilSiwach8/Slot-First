@@ -15,6 +15,27 @@
       "rtp": 0.9620000001680001,
       "hitOneIn": 2.478475229359175,
       "maxWinOneIn": 5999999.886783073
+    },
+    "buyMatinee": {
+      "rgs": "buy_matinee",
+      "cost": 88,
+      "rtp": 0.9619999999972729,
+      "hitOneIn": 1.0014622711249943,
+      "maxWinOneIn": 500000.00126239506
+    },
+    "buyMidnight": {
+      "rgs": "buy_midnight",
+      "cost": 270,
+      "rtp": 0.9619999999994444,
+      "hitOneIn": 1.0006488713858006,
+      "maxWinOneIn": 200000.00007867627
+    },
+    "buyLightsOut": {
+      "rgs": "buy_lights_out",
+      "cost": 600,
+      "rtp": 0.9620000000001666,
+      "hitOneIn": 1.0000272703936401,
+      "maxWinOneIn": 60000.000001199245
     }
   }
 }

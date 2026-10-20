@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0b0a0d" />
+    <title>Shadowplay</title>
+    <link rel="icon" href="./assets/symbols/W.webp" />
+    <script type="module" crossorigin src="./assets/index-CqcN-yhb.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D0OAjxhq.css">
+  </head>
+  <body>
+    <div id="app">
+      <div id="stage" aria-hidden="true"></div>
+
+      <div id="hud-top">
+        <button class="icon-btn" id="btn-sound" aria-label="Sound on" aria-pressed="true"><img src="./assets/ui/icon_sound.webp" alt="" /></button>
+        <button class="icon-btn" id="btn-info" aria-label="Game rules (the Programme)"><img src="./assets/ui/icon_info.webp" alt="" /></button>
+        <button class="icon-btn" id="btn-settings" aria-label="Settings"><img src="./assets/ui/icon_settings.webp" alt="" /></button>
+      </div>
+
+      <div id="show-hud" hidden>
+        <div class="show-name"></div>
+        <div class="show-row">
+          <div class="spins-left"><span class="n"></span><small>spins left</small></div>
+          <div class="flame-meter" aria-label="Flame">
+            <img src="./assets/ui/flame_meter.webp" alt="" />
+            <span class="flame-label"></span>
+          </div>
+          <div class="show-total"><small>Show total</small><span class="n"></span></div>
+        </div>
+      </div>
+
+      <div id="marquee" aria-live="polite">
+        <div class="marquee-inner"><span class="label"></span><span class="amount"></span></div>
+      </div>
+
+      <footer id="apron">
+        <div class="box-office">
+          <small>Box Office</small>
+          <b id="balance">0.00</b>
+        </div>
+
+        <div class="seats" role="group" aria-label="Stake">
+          <button class="seat-step" id="seat-down" aria-label="Lower stake">&#9664;</button>
+          <div class="seat-roll" id="seat-roll"></div>
+          <button class="seat-step" id="seat-up" aria-label="Raise stake">&#9654;</button>
+        </div>
+
+        <div class="wick">
+          <button id="spin" aria-label="Spin">
+            <img class="iris open" src="./assets/ui/spin_open.webp" alt="" />
+            <img class="iris closed" src="./assets/ui/spin_closed.webp" alt="" />
+            <img class="iris disabled" src="./assets/ui/spin_disabled.webp" alt="" />
+            <span class="autoplay-count" hidden></span>
+          </button>
+          <div class="compass" aria-hidden="true">
+            <img src="./assets/ui/lantern_compass.webp" alt="" />
+            <span class="needle"></span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="icon-btn" id="btn-autoplay" aria-label="Autoplay (Repertory)"><img src="./assets/ui/icon_autoplay.webp" alt="" /></button>
+          <button class="icon-btn" id="btn-turbo" aria-label="Quick Change (turbo)" aria-pressed="false"><img src="./assets/ui/icon_turbo.webp" alt="" /></button>
+          <button class="icon-btn" id="btn-playbill" aria-label="Playbill (bet modes and show buys)"><img src="./assets/ui/icon_playbill.webp" alt="" /></button>
+        </div>
+        <div class="mode-chip" id="mode-chip" hidden>Extra Wick lit</div>
+      </footer>
+
+      <div id="banner" aria-live="assertive"></div>
+      <div id="layer"></div>
+
+      <div id="loader">
+        <img class="loader-logo" src="./assets/ui/logo.webp" alt="Shadowplay" />
+        <p class="loader-sub">The All Hallows' Paper Theatre</p>
+        <div class="fuse">
+          <div class="fuse-track"></div>
+          <div class="fuse-burn"><img src="./assets/fx/fuse.webp" alt="" /></div>
+          <div class="fuse-spark"></div>
+        </div>
+        <button class="curtain-btn" id="raise-curtain" hidden>Tap to raise the curtain</button>
+        <p class="loader-note">Demo build · play credits only</p>
+      </div>
+    </div>
+  </body>
+</html>

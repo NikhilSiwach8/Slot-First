@@ -67,6 +67,8 @@ npm run build:stake    # builds stake/frontend/
   and max-win odds per bet mode, a guide to every button, and the full disclaimer.
 - **Sizes tested:** desktop 1600×900, Pixel 7, 390×844, 844×390, Mobile S 320×568,
   Popout L 800×450 and Popout S 400×225.
+- **Production build checked** from a sub-folder (as Stake serves it): no failed requests,
+  clean console, no debug hooks.
 
 ## Still to do on your side
 
@@ -74,9 +76,18 @@ npm run build:stake    # builds stake/frontend/
    `assets/cut/lobby_tile_portrait_v1.png` (the tile must not contain baked-in text).
 2. **Audio:** the sounds are generated in code as placeholders. Approval reviewers score
    polish, so replace them with the produced music and effects before submitting.
-3. **Replay event IDs for review:** Stake asks for one event ID per mode for a normal win, a
-   big win, a max win, a loss and a bonus trigger. They're listed per mode in
-   `math/reports/<mode>.json` under `reviewEvents`, but the RGS may assign its own event ids,
-   so confirm them in the dashboard.
+3. **Replay event IDs for review:** Stake asks for one example per mode of a normal win, a big
+   win, a max win, a loss and a bonus trigger. These are the book ids (also in
+   `math/reports/<mode>.json` under `reviewEvents`). The RGS may give replays its own event
+   ids, so confirm them in the dashboard.
+
+   | Mode | Normal win | Big win | Max win | Loss | Bonus trigger |
+   |---|---|---|---|---|---|
+   | `base` | 2 | 260 | 500001 | 1 | 141 |
+   | `ante` | 1 | 55 | 500001 | 6 | 20 |
+   | `buy_matinee` | 6 | 116 | 150001 | 247 | 1 |
+   | `buy_midnight` | 3 | 497 | 150001 | 491 | 1 |
+   | `buy_lights_out` | 2 | 450 | 75771 | 9026 | 1 |
+
 4. **One live check per mode** after upload: authenticate, play, end-round, replay.
 5. **Trademark check** on the name "Shadowplay" before publishing.

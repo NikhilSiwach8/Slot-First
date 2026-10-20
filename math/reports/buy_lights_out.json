@@ -1,0 +1,148 @@
+{
+  "mode": "buy_lights_out",
+  "name": "Buy: Lights Out",
+  "cost": 600,
+  "mathVersion": "1.0.0",
+  "books": 150012,
+  "naturalBooks": 150000,
+  "maxWinBooks": 13,
+  "naturalMaxWinBooks": 1,
+  "fixedGroups": [
+    {
+      "label": "50000×",
+      "probability": 0.000016666666666666667,
+      "books": 13
+    }
+  ],
+  "rtp": 0.9620000000001666,
+  "naturalRtp": 0.971528569999999,
+  "lambda": -0.004411405714478931,
+  "hitRate": 0.999972730350014,
+  "hitOneIn": 1.0000272703936401,
+  "maxWin": 50000,
+  "maxWinProbability": 0.000016666666666333543,
+  "maxWinOneIn": 60000.000001199245,
+  "stdDev": 2.3116294671513873,
+  "winRanges": [
+    {
+      "from": 0.01,
+      "to": 1,
+      "probability": 0.0013403981979901744,
+      "oneIn": 746.0469594031268,
+      "books": 197
+    },
+    {
+      "from": 1,
+      "to": 2,
+      "probability": 0.0030350344827757606,
+      "oneIn": 329.48554808030616,
+      "books": 447
+    },
+    {
+      "from": 2,
+      "to": 5,
+      "probability": 0.014058875509771758,
+      "oneIn": 71.12944412267825,
+      "books": 2076
+    },
+    {
+      "from": 5,
+      "to": 10,
+      "probability": 0.03151917240448128,
+      "oneIn": 31.726721348109496,
+      "books": 4667
+    },
+    {
+      "from": 10,
+      "to": 20,
+      "probability": 0.06412596002971423,
+      "oneIn": 15.594308444452562,
+      "books": 9521
+    },
+    {
+      "from": 20,
+      "to": 50,
+      "probability": 0.14714242964580668,
+      "oneIn": 6.79613624980331,
+      "books": 21921
+    },
+    {
+      "from": 50,
+      "to": 100,
+      "probability": 0.14494144678340168,
+      "oneIn": 6.899337782203768,
+      "books": 21666
+    },
+    {
+      "from": 100,
+      "to": 200,
+      "probability": 0.15292741184884404,
+      "oneIn": 6.539050049368627,
+      "books": 22928
+    },
+    {
+      "from": 200,
+      "to": 500,
+      "probability": 0.18930795016026644,
+      "oneIn": 5.282398331149901,
+      "books": 28481
+    },
+    {
+      "from": 500,
+      "to": 1000,
+      "probability": 0.10765453358546848,
+      "oneIn": 9.288972481647377,
+      "books": 16254
+    },
+    {
+      "from": 1000,
+      "to": 2000,
+      "probability": 0.07643377416729721,
+      "oneIn": 13.08322153255462,
+      "books": 11575
+    },
+    {
+      "from": 2000,
+      "to": 5000,
+      "probability": 0.051511509408514206,
+      "oneIn": 19.413137209190623,
+      "books": 7827
+    },
+    {
+      "from": 5000,
+      "to": 10000,
+      "probability": 0.012578443179787598,
+      "oneIn": 79.50109450801575,
+      "books": 1918
+    },
+    {
+      "from": 10000,
+      "to": 20000,
+      "probability": 0.0029358995896998598,
+      "oneIn": 340.61110383622866,
+      "books": 449
+    },
+    {
+      "from": 20000,
+      "to": 50000,
+      "probability": 0.00044322468953877144,
+      "oneIn": 2256.192002843118,
+      "books": 68
+    },
+    {
+      "from": 50000,
+      "to": null,
+      "probability": 0.000016666666666333543,
+      "oneIn": 60000.000001199245,
+      "books": 13
+    }
+  ],
+  "seconds": 1373.953,
+  "reviewEvents": {
+    "bonusTrigger": 1,
+    "normalWin": 2,
+    "bigWin": 450,
+    "loss": 9026,
+    "maxWin": 75771
+  }
+}
