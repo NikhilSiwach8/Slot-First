@@ -35,7 +35,8 @@ from a new angle.
 - **6 reels × 5 rows**, **ways pays** left to right, up to **15,625 ways**
 - Pays need 3 or more matching symbols on adjacent reels, starting from reel 1
 - **Moth** is the Wild. It substitutes for every paying symbol and lands on reels 2–6.
-- **Ticket** is the Scatter. It pays anywhere and triggers the shows.
+- **Ticket** is the Scatter. In the base game it pays anywhere and triggers the shows; in a
+  show, 3 or more add spins.
 - **Match** is a bonus-only collector symbol (see §5)
 
 ### Symbol set: "the Company"
@@ -94,15 +95,15 @@ The Lantern also has a **flame level**, drawn on every spin:
 
 ### 3.3 Ink: the multiplier system
 
-Ink builds up wherever shadows **overlap**:
+Ink builds up wherever light piles up:
 
-- A shadow landing on a cell that already holds **the same symbol**, whether the puppet
-  itself or its shadow, **deepens the ink**. The cell gains **+1×**, so it becomes ×2, then
-  ×3, and so on.
-- Moth shadows deepen ink on *any* cell they reach.
-- **Winning ways add up the ink multipliers on their cells.** For example, a way through a
-  ×2 cell and a ×3 cell pays ×5. Adding instead of multiplying keeps the maths under control
-  and is easy to explain in a single sentence on the info page.
+- Where **two or more shadows of the same symbol** land on one cell, its ink deepens by one
+  step: ×2, then ×3, and so on.
+- A **Moth shadow** landing on a puppet (or on another Moth) deepens that cell's ink too.
+- Ink deepens by at most one step per cell per Act.
+- **Each winning way pays the deepest ink it passes through.** A way through a ×2 cell and a
+  ×5 cell pays ×5. (Balancing showed that adding the ink along a way grew far too fast once
+  ink stays on the stage in the shows; "deepest ink" is also simpler to explain.)
 - Ink depth is capped at **×10 per cell** in the base game and **×100** in the shows.
 
 The ink is drawn as a darkening violet stain that soaks into the paper stage, with the
@@ -118,10 +119,10 @@ This is the hook that makes Shadowplay feel unlike any other slot.
    Lantern **moves clockwise to the next side**.
 3. Shadows from the old light fade, but **ink that formed stays**. The ink has "dried".
 4. New shadows are cast from the new angle and the board is evaluated again. **An Encore
-   pays only ways that contain at least one shadow cast from the current light**, so each
-   Encore is new money, not a repeat.
-5. Encores continue for as long as each Act produces a win, up to a full rotation of four
-   Acts.
+   pays only what the new shadows add**: for each symbol, the ways the puppets reach on their
+   own are subtracted, so nothing is ever paid twice.
+5. **The curtain rises again only while the applause holds up:** after Act II, each Encore
+   must pay at least as much as the Encore before it, up to a full rotation of four Acts.
 6. **Full Circle:** if all four sides paid, the Lantern returns to its first side as a
    **Bonfire** for a **Fifth Act**, the "Showstopper Act". This is the crowd-pleaser moment.
 
@@ -155,7 +156,7 @@ changes the light, not just the number of spins.
 |---|---|---|---|
 | 3 | **The Matinee** | 10 | **Ink dries for the whole show**: every ink multiplier stays on its cell across all spins of the show. The flame starts at Candle. |
 | 4 | **The Midnight Show** | 12 | Same as the Matinee, but the flame starts at **Lamp** and the stage starts with **one random ×2 ink cell on each reel** |
-| 5 | **Lights Out** | 15 | Same as the Midnight Show, but **two Lanterns** on opposite sides cast shadows both ways at once. Where the shadows cross in the middle, ink builds very fast. |
+| 5+ | **Lights Out** | 15 | Ink stays and every reel starts with a ×2 ink cell, but the flame starts at Candle: **two Lanterns** on opposite sides cast shadows both ways at once. Where the shadows cross in the middle, ink builds very fast. |
 
 ### Match: lighting the flame
 
@@ -188,7 +189,7 @@ whether a Full Circle happened.
 | Hit frequency | ~1 in 3.6 |
 | Bonus frequency (base) | ~1 in 230 |
 | Bonus frequency (Ante) | ~1 in 115 |
-| Max win | **25,000×** stake, with a hard round cap. The Final Bow screen plays when it's reached. |
+| Max win | **50,000×** stake, with a hard round cap. The Final Bow screen plays when it's reached. |
 | Max-win frequency | Within Stake's publication limits, checked by simulation |
 | Rounds | **Stateless.** Each bet is one complete book, and shows resolve inside the same round, as the Stake Engine RGS requires. |
 
@@ -206,11 +207,11 @@ The Playbill holds every bet mode.
 |---|---|---|
 | **Standard** | 1× | Base game |
 | **Extra Wick** (Ante) | 1.25× | Doubles the chance of Lamp and Bonfire flames and doubles Ticket frequency |
-| **Buy: Matinee** | 100× | Starts the Matinee |
-| **Buy: Midnight Show** | 250× | Starts the Midnight Show |
+| **Buy: Matinee** | 90× | Starts the Matinee |
+| **Buy: Midnight Show** | 270× | Starts the Midnight Show |
 | **Buy: Lights Out** | 600× | Starts Lights Out |
 
-The buy costs above are placeholders. The maths will set them so every mode lands on the
+The buy costs above come from the demo simulations (see [MATH_NOTES.md](MATH_NOTES.md)). The final maths will set them so every mode lands on the
 same RTP, and buy modes can be switched off for each jurisdiction.
 
 ---
@@ -349,7 +350,7 @@ A *"Don't show again"* toggle and a large **PLAY** ticket stub sit below them.
 | **BRAVISSIMO** | 50× | Roses, then the curtain sways and the footlights chase |
 | **STANDING OVATION** | 100× | Silhouettes of the audience stand up in the foreground, and the camera pulls back to reveal the full theatre |
 | **SHOWSTOPPER** | 500× | Every Lantern ignites, the whole stage is lit at once, and the marquee bursts |
-| **FINAL BOW** | 25,000× (max) | The puppets bow as one, the curtain falls slowly, and gold leaf drifts down |
+| **FINAL BOW** | 50,000× (max) | The puppets bow as one, the curtain falls slowly, and gold leaf drifts down |
 
 Each tier can be skipped with a tap or Space. The count-up always lands on the exact
 amount.
