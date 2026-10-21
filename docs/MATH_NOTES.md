@@ -23,8 +23,8 @@ Each mode's RTP is computed exactly from its integer lookup table.
 | `base` | 1× | 500,016 | **96.2000%** | 1 in 2.52 | 1 in 8,000,000 | 43.2 |
 | `ante` (Extra Wick) | 1.25× | 500,020 | **96.2000%** | 1 in 2.48 | 1 in 6,000,000 | 39.1 |
 | `buy_matinee` | 88× | 150,012 | **96.2000%** | every show pays except ~0.15% | 1 in 500,000 | 4.9 |
-| `buy_midnight` | 270× | 150,012 | **96.2000%** | every show pays except ~0.06% | 1 in 200,000 | 3.1 |
-| `buy_lights_out` | 600× | 150,012 | **96.2000%** | every show pays except ~0.003% | 1 in 60,000 | 2.3 |
+| `buy_midnight` | 270× | 120,012 | **96.2000%** | every show pays except ~0.06% | 1 in 200,000 | 3.1 |
+| `buy_lights_out` | 600× | 100,012 | **96.2000%** | every show pays except ~0.003% | 1 in 60,000 | 2.3 |
 
 Spread between modes: 0.0000% (Stake allows 0.5%).
 
@@ -32,8 +32,18 @@ Spread between modes: 0.0000% (Stake allows 0.5%).
 
 The method is the same idea as the Math SDK's distributions and optimizer:
 
-1. **Natural books.** Each mode plays 500,000 rounds (150,000 for the buys) on the real reels,
-   with one seed per book, so every book is reproducible.
+1. **Natural books.** Each mode plays its rounds on the real reels, with one seed per book,
+   so every book is reproducible:
+
+   | Modes | Rounds |
+   |---|---|
+   | `base`, `ante` | 500,000 |
+   | `buy_matinee` | 150,000 |
+   | `buy_midnight` | 120,000 |
+   | `buy_lights_out` | 100,000 |
+
+   The two big buy modes are smaller so every upload file stays under 50 MB; they are still
+   within Stake's 100,000–1,000,000 range.
 2. **Max-win and gap-filling books.** These are real rounds of the same engine, played on
    boosted reel sets until they land in the needed range. The SDK does the same with its
    win-cap reel sets.
@@ -52,8 +62,8 @@ The method is the same idea as the Math SDK's distributions and optimizer:
 | `base` | 97.74% | −0.0081 |
 | `ante` | 93.17% | +0.0005 |
 | `buy_matinee` | 93.48% | +0.0088 |
-| `buy_midnight` | 97.19% | −0.0034 |
-| `buy_lights_out` | 97.15% | −0.0044 |
+| `buy_midnight` | 97.21% | −0.0035 |
+| `buy_lights_out` | 96.84% | −0.0030 |
 
 Every λ is within ±0.01, so the published game plays almost exactly like the raw game.
 (A λ of +0.009 changes the relative weight of a 100× round against a 0× round by about 4%.)

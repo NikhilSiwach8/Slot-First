@@ -44,8 +44,8 @@ export const PLANS: Record<Mode, Plan> = {
   base: { books: 500_000, maxWinChance: 1 / 8_000_000, maxWinBooks: 12 },
   ante: { books: 500_000, maxWinChance: 1 / 6_000_000, maxWinBooks: 12 },
   buyMatinee: { books: 150_000, maxWinChance: 1 / 500_000, maxWinBooks: 12 },
-  buyMidnight: { books: 150_000, maxWinChance: 1 / 200_000, maxWinBooks: 12 },
-  buyLightsOut: { books: 150_000, maxWinChance: 1 / 60_000, maxWinBooks: 12 },
+  buyMidnight: { books: 120_000, maxWinChance: 1 / 200_000, maxWinBooks: 12 },
+  buyLightsOut: { books: 100_000, maxWinChance: 1 / 60_000, maxWinBooks: 12 },
 };
 
 const MODE_ORDER = Object.keys(MODES) as Mode[];

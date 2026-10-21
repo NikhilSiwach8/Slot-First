@@ -26,16 +26,16 @@
     "buyMidnight": {
       "rgs": "buy_midnight",
       "cost": 270,
-      "rtp": 0.9619999999994444,
-      "hitOneIn": 1.0006488713858006,
-      "maxWinOneIn": 200000.00007867627
+      "rtp": 0.9619999999993704,
+      "hitOneIn": 1.0006253240957879,
+      "maxWinOneIn": 200000.00007860674
     },
     "buyLightsOut": {
       "rgs": "buy_lights_out",
       "cost": 600,
-      "rtp": 0.9620000000001666,
-      "hitOneIn": 1.0000272703936401,
-      "maxWinOneIn": 60000.000001199245
+      "rtp": 0.9620000000004332,
+      "hitOneIn": 1.0000203030722732,
+      "maxWinOneIn": 60000.00000119557
     }
   }
 }

@@ -86,7 +86,7 @@ npm run build:stake    # builds stake/frontend/
    | `base` | 2 | 260 | 500001 | 1 | 141 |
    | `ante` | 1 | 55 | 500001 | 6 | 20 |
    | `buy_matinee` | 6 | 116 | 150001 | 247 | 1 |
-   | `buy_midnight` | 3 | 497 | 150001 | 491 | 1 |
+   | `buy_midnight` | 3 | 497 | 120001 | 491 | 1 |
    | `buy_lights_out` | 2 | 450 | 75771 | 9026 | 1 |
 
 4. **One live check per mode** after upload: authenticate, play, end-round, replay.
